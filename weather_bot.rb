@@ -39,4 +39,28 @@ class WeatherBot
 			puts "Could no read config file #{@@otenki_config_file}"
 		end
 	end
+
+	def do_oauth()
+		# Oauth認証を行う
+		@twitter_handler = TwitterHandler.new(@consumer_key, @consumer_secret, @access_key, @access_secret)
+	end
+
+	def show_retweet_to_me()
+		@twitter_handler.get_retweet_to_me().collect do |tweet|
+			puts "@ #{tweet.get_name()} said:"
+			puts tweet.get_text()
+			@since_id = tweet.get_id()
+		end
+	end
+
+	# configファイルのsince_idを更新
+	def udpate_cfg()
+		begin
+			# todo
+			# iniConfigの方で追加
+		rescue
+			puts "file:#{@@otenki_config_file} could not be over wirtten."
+		end
+	end
+
 end

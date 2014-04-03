@@ -43,7 +43,7 @@ class TwitterHandler
 	def get_retweet_to_me()
 		results = Array.new
 		@client.retweeted_to_me().collect do |tweet|
-			results << Tweet.new(tweet.user.screen_name, tweet.text)
+			results << Tweet.new(tweet.user.screen_name, tweet.text, tweet.id)
 		end
 		return results
 	end
@@ -55,9 +55,10 @@ end
 class Tweet
 	
 	# デフォルト値としてnilを設定し，省略可能にしておく
-	def initialize(name=nil, text=nil)
+	def initialize(name=nil, text=nil, id=nil)
 		@name = name
 		@text = text
+		@id = id
 	end
 
 	def get_name()
@@ -66,5 +67,9 @@ class Tweet
 
 	def get_text()
 		return @text
+	end
+
+	def get_id()
+		return id
 	end
 end
