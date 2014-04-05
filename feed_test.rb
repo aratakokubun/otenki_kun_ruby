@@ -35,4 +35,5 @@ feed.entries.each {|item|
 	puts item.title.gsub(/\\u([\da-fA-F]{4})/){
 		[$1].pack('H*').unpack('n*').pack('U*')
 	}
+	puts item.url
 }

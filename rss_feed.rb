@@ -19,9 +19,9 @@ class RssFeed
 	end
 
 	# 実際にRSSを取得する
-	def get_rss()
+	def get_rss(url = @url)
 		# feed_urls = Feedbag.find(@url)
-		return Feedjira::Feed.fetch_and_parse("@url")
+		return Feedjira::Feed.fetch_and_parse(url)
 	end
 
 end

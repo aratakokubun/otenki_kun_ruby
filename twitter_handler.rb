@@ -1,5 +1,7 @@
 =begin
 twitterのOauth認証を行い，各種操作を行う
+わざわざ一回Tweetクオブジェクトを噛ませるのは無駄なので，必要ない．
+直接weatherbotに記述すればいい
 =end
 
 require "rubygems"
@@ -23,29 +25,30 @@ class TwitterHandler
 
 	# ハッシュタグ#tagで検索
 	def search_tag(tag)
-		results = Array.new
-		@client.search("#" + tag + "-rt", :count=>10, :result_type=>"recent").collect do |tweet|
-			results << Tweet.new(tweet.user.screen_name, tweet.text)
+		return @client.search("#" + tag + "-rt", :count=>10, :result_type=>"recent").collect do |tweet|
+			Tweet.new(tweet.user.screen_name, tweet.text)
 		end
-		return results
 	end
 	
 	# timelineの取得
-	def get_public_timeline()
-		results = Array.new
-		@client.home_timeline().collect do |tweet|
-			results << Tweet.new(tweet.user.screen_name, tweet.text)
+	def get_public_timeline(since = 1)
+		return @client.home_timeline(:since_id=>since).collect do |tweet|
+			Tweet.new(tweet.user.screen_name, tweet.text)
 		end
-		return results
 	end
 
-	# @ツイートを取得
-	def get_retweet_to_me()
-		results = Array.new
-		@client.retweeted_to_me().collect do |tweet|
-			results << Tweet.new(tweet.user.screen_name, tweet.text, tweet.id)
+	# リツイートを取得
+	def get_retweets_to_me(since = 1)
+		return @client.retweeted_to_me(:since_id=>since).collect do |tweet|
+			Tweet.new(tweet.user.screen_name, tweet.text, tweet.id)
 		end
-		return results
+
+	end
+
+	def get_mentions_to_me(since = 1)
+		return @client.mentions_timeline(:since_id=>since).collect do |tweet|
+			Tweet.new(tweet.user.screen_name, tweet.text, tweet.id)
+		end
 	end
 
 end
@@ -70,6 +73,6 @@ class Tweet
 	end
 
 	def get_id()
-		return id
+		return @id
 	end
 end

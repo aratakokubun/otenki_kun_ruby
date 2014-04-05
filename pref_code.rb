@@ -64,58 +64,58 @@ class PrefCode
 	end
 
 	# 都道府県名を文字列内から探す
-	def search_pref(str)
+	def self.search_pref(str)
 		result = Hash.new()
-		@@pref.each{|key, val|
-			if str.include?(key) then
+		@@pref.each do |key, val|
+			if str.include?(key)
 				result[key] = val
 			end
-		}
+		end
 		return result
 	end
 
 	# 北海道の地域名を文字列ないから探す
-	def search_hokkaido(str)
+	def self.search_hokkaido(str)
 		result = Hash.new()
-		@@hokkaido.each{|key, val|
-			if str.include?(key) then
+		@@hokkaido.each do |key, val|
+			if str.include?(key)
 				result[key] = val
 			end
-		}
+		end
 		return result
 	end
 
 	# 文字列から都道府県名と北海道地域名を検索
-	def search_code(str)
+	def self.search_code(str)
 		result = Hash.new()
 		# 47都道府県から検索
-		@@pref.each{|key, val|
-			if str.include?(key) then
+		@@pref.each do |key, val|
+			if str.include?(key)
 				# 県コード
-				if val == "1" then
+				if val == "1"
 					# 地域の参照が見つかった回数
 					count = 0
-					@@hokkaido.each{|hkey, hval|
-						if str.include?(hkey) then
+					@@hokkaido.each do |hkey, hval|
+						if str.include?(hkey)
 							count += 1
 							# 重複しない場合のみ追加
-							if result.key?(hkey) then
+							if result.key?(hkey)
 								result[hkey] = hval
 							end
 						end
-					}
+					end
 					# 北海道かつ地域参照0の場合は道央を適用
-					if count == 0 then
-						if !result.key?("道央") then
+					if count == 0
+						if !result.key?("道央")
 								result["道央"] = @@hokkaido["道央"]
 						end
 					end
 				# 北海道以外なら重複以外追加
-				elsif !result.key?(key) then
+				elsif !result.key?(key)
 					result[key] = val
 				end
 			end
-		}
+		end
 		# 完成したhashmapを返す
 		return result
 	end

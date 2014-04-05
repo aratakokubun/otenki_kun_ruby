@@ -20,7 +20,7 @@ yahoo天気のRSSフィードから取得可能なキーマップの定義
 =end
 
 require_relative "rss_feed.rb"
-require_relative "./pref_code.rb"
+require_relative "pref_code.rb"
 
 class RssYahoo < RssFeed
 	@@KEYMAPS = [
@@ -41,15 +41,15 @@ class RssYahoo < RssFeed
 	"guid",
 	"channel"]
 
-	@@base_url = "http://rss.weather.yahoo.co.jp/rss/days/" #[code].xm;"
+	@@base_url = "http://rss.weather.yahoo.co.jp/rss/days/" #[code].xml"
 
 	def checkKeymap(key)
 		return KEYMAPS.include?(key)
 	end
 
-	def initialize(url)
-		super(url)
-		@pcode = prefcode()
+	def initialize()
+		super(@@base_url)
+		# @pcode = PrefCode()
 	end
 
 	# 県コードからurlを生成
@@ -61,13 +61,14 @@ class RssYahoo < RssFeed
 	def make_urllist(str)
 		urls = Hash.new([])
 		# 文字列からxml用のコードを検索
-		prefcodes = @pcode.search_code(str)
+		prefcodes = PrefCode.search_code(str)
 		# 含まれる県・地域ごとにurlリストを生成
-		prefcodes.each{|pref, code|
+		prefcodes.each do |pref, code|
 			# urlを生成して追加
 			url = make_code_url(code)
 			urls[pref] = url
-		}
+		end
+
 		#取得したリストを返す
 		return urls
 	end
@@ -77,27 +78,29 @@ class RssYahoo < RssFeed
 		result = Hash.new([])
 		# 生成されたurlからrssを取得
 		rss = get_rss(url)
-		rss.entries.each {|item|
+		rss.entries.each do|item|
 			# 含まれる都道府県とその天気予報をhashとして返す
 			title = item.title
-			link = item.link
-			result[title] = link
-		}
+			url = item.url
+			result[title] = url
+		end
 		return result
 	end
 
-	# urのlistからrssを取得し，hashmaoを生成
-	def get_rss_result_list(str)
+	# urのlistからrssを取得し，hashmapを生成
+	def get_rss_list(str)
 		result = Hash.new([])
 		urls = make_urllist(str)
-		urls.each {|key, link|
-			list = get_rss_result(link)
+		urls.each do |pref, url|
+			list = get_rss_result(url)
 			titles = Array.new
-			list.each {|item|
-				titles.append(item)
-			}
-			result[key] = titles
-		}
+			list.each do|item|
+				titles.push(item)
+				puts item
+			end
+			result[pref] = titles
+		end
+		return result
 	end
 
 end

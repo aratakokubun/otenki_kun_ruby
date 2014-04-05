@@ -14,4 +14,10 @@ class IniConfig
 	def get_token(section, name)
 		return @ini[section][name]
 	end
+
+	def update(section, name, value)
+		@ini[section][name] = value
+		@ini.write
+	end
+
 end
