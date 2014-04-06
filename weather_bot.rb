@@ -10,7 +10,6 @@ require "rubygems"
 require "twitter"
 require_relative "rss_yahoo.rb"
 require_relative "ini_config.rb"
-require_relative "twitter_handler.rb"
 
 class WeatherBot
 	
@@ -42,26 +41,29 @@ class WeatherBot
 		end
 	end
 
+	# Oauth認証を行う
 	def do_oauth()
-		# Oauth認証を行う
-		@twitter_handler = TwitterHandler.new(@consumer_key, @consumer_secret, @access_key, @access_secret)
+		@client = Twitter::REST::Client.new do |config|
+			config.consumer_key = @consumer_key
+			config.consumer_secret = @consumer_secret
+			config.access_token = @access_key
+			config.access_token_secret = @access_secret
+		end
 	end
 
 	# リツイートを取得
 	def show_retweets_to_me()
-		@twitter_handler.get_retweets_to_me(@since_id).each do |tweet|
-			puts "@#{tweet.get_name()} said:"
-			puts tweet.get_text()
-			@since_id = tweet.get_id()
+		@client.retweeted_to_me(since_id=>@since_id).reverse_each do |tweet|
+			puts "@#{tweet.user.screen_name} said: #{tweet.text}"
+			@since_id = tweet.id
 		end
 	end
 
 	# 自分のメンションが含まれるツイートを取得
 	def show_mentions_to_me()
-		@twitter_handler.get_mentions_to_me(@since_id).each do |tweet|
-			puts "@#{tweet.get_name()} said:"
-			puts tweet.get_text()
-			@since_id = tweet.get_id()
+		@client.mentions(since_id=>@since_id).reverse_ecah do |tweet|
+			puts "@#{tweet.user.screen_name} said: #{tweet.text}"
+			@since_id = tweet.id
 		end
 	end
 
@@ -103,17 +105,18 @@ class WeatherBot
 				[$1].pack('H*').unpack('n*').pack('U*')
 			}
 		end
-		info = "[#{list[2].force_encoding('utf-8')}:#{list[4].force_encoding('utf-8')},#{list[6].force_encoding('utf-8')}]"
+		info = "[#{list[2]}:#{list[4]},#{list[6]}]"
 		return info
 	end
 
-	def make_posts_from_tweets(tweets)
+	def make_posts_from_tweets()
 		posts = Array.new
 
-		tweets.each do |tweet|
-			id = tweet.get_id()
-			name = tweet.get_name()
-			text = tweet.get_text()
+		# mentionのリストを逆順(古い順番)に取得
+		@client.mentions(:since_id => @since_id).reverse_each do |tweet|
+			id = tweet.id
+			name = tweet.user.screen_name
+			text = tweet.text
 
 			# since_idを更新
 			@since_id = id
@@ -134,14 +137,12 @@ class WeatherBot
 						end
 						message.push(area_weather)
 					end
-					message.push('\n')
+					message.push("\n")
 				end
 				message.push('です!')
 
 				# ツイート用のフォームを作成
 				post = "@#{name}#{message.join('')}"
-				# debug用の表示
-				# puts post
 				# 結果格納用の配列に追加
 				posts.push(post)
 			end
@@ -156,32 +157,30 @@ class WeatherBot
 			len = post.length
 			# ツイッターの文字制限140文字を超える場合は140字まででカット
 			if len > 140
-				@twitter_handler.update(post.slice(0,140))
+				@client.update(post.slice(0,140))
 			else 
-				@twitter_handler.update(post)
+				@client.update(post)
 			end
 		end
 	end
 
 	# twitter投稿用テスト
 	def do_test()
-		# メンションのリストを取得
-		mentions = @twitter_handler.get_mentions_to_me(@since_id)
 		# 各メンションのリストから地名を検索し，そのRSSを取得
-		posts = make_posts_from_tweets(mentions)
+		posts = make_posts_from_tweets()
 		# ツイート(予定)を表示
 		posts.each do |post|
 			puts post
 		end
+		# configファイルのsince_idを更新
+		update_cfg()
 	end
 
 
 	# 全体の処理
 	def do_post()
-		# メンションのリストを取得
-		mentions = @twitter_handler.get_mentions_to_me(@since_id)
 		# 各メンションのリストから地名を検索し，そのRSSを取得
-		posts = make_posts_from_tweets(mentions)
+		posts = make_posts_from_tweets()
 		# 取得したリストを元にリプライを返す
 		tweet_posts(posts)
 		# configファイルのsince_idを更新

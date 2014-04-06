@@ -32,21 +32,21 @@ class TwitterHandler
 	
 	# timelineの取得
 	def get_public_timeline(since = 1)
-		return @client.home_timeline(:since_id=>since).collect do |tweet|
+		return @client.home_timeline({:since_id=>since}).collect do |tweet|
 			Tweet.new(tweet.user.screen_name, tweet.text)
 		end
 	end
 
 	# リツイートを取得
 	def get_retweets_to_me(since = 1)
-		return @client.retweeted_to_me(:since_id=>since).collect do |tweet|
+		return @client.retweeted_to_me({:since_id=>since}).collect do |tweet|
 			Tweet.new(tweet.user.screen_name, tweet.text, tweet.id)
 		end
 
 	end
 
 	def get_mentions_to_me(since = 1)
-		return @client.mentions_timeline(:since_id=>since).collect do |tweet|
+		return @client.mentions(:since_id => since).collect do |tweet|
 			Tweet.new(tweet.user.screen_name, tweet.text, tweet.id)
 		end
 	end

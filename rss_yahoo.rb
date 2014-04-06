@@ -54,7 +54,7 @@ class RssYahoo < RssFeed
 
 	# 県コードからurlを生成
 	def make_code_url(code)
-		return @@base_url + code + ".xml"
+		return "#{@@base_url}#{code}.xml"
 	end
 
 	# 文字列からRSS取得用のurlリストを作成
@@ -96,7 +96,6 @@ class RssYahoo < RssFeed
 			titles = Array.new
 			list.each do|item|
 				titles.push(item)
-				puts item
 			end
 			result[pref] = titles
 		end
